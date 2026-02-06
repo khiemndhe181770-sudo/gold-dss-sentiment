@@ -11,29 +11,21 @@ KEYWORDS = [
 ]
 
 GEO = "VN"
-TIMEFRAME = 'today 30-d'
+TIMEFRAME = "now 7-d"   # an toàn nhất
 SLEEP_TIME = 90
-SLEEP_SEC = 20   # chống block
+SLEEP_SEC = 30   # chống block
 
 # -----------------------------
 # INIT PYTRENDS
 # -----------------------------
 pytrends = TrendReq(
-    hl='en-US',
+    hl="vi-VN",
     tz=420,
-    timeout=(10, 25),
-    requests_args={
-        'headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        }
-    }
+    timeout=(10, 30)
 )
 
-all_data = []
+raw_frames = []
 
-# -----------------------------
-# FETCH LOOP (SAFE MODE)
-# -----------------------------
 for kw in KEYWORDS:
     try:
         print(f"Fetching: {kw}")
@@ -41,7 +33,7 @@ for kw in KEYWORDS:
         pytrends.build_payload(
             kw_list=[kw],
             timeframe=TIMEFRAME,
-            geo=GEO
+            geo=""   # ❗ BẮT BUỘC: để trống
         )
 
         df = pytrends.interest_over_time()
@@ -51,11 +43,12 @@ for kw in KEYWORDS:
             continue
 
         df = df.reset_index()
-        df["keyword"] = kw
         df = df.rename(columns={kw: "trend_score"})
-        df = df[["date", "keyword", "trend_score"]]
+        df["keyword"] = kw
 
-        all_data.append(df)
+        raw_frames.append(
+            df[["date", "keyword", "trend_score"]]
+        )
 
         time.sleep(SLEEP_SEC)
 
@@ -63,18 +56,17 @@ for kw in KEYWORDS:
         print(f"❌ Error with {kw}: {e}")
         time.sleep(SLEEP_SEC * 2)
 
-# -----------------------------
-# COMBINE RAW DATA
-# -----------------------------
-if all_data:
-    raw_df = pd.concat(all_data, ignore_index=True)
+# =============================
+# SAVE RAW DSS TABLE
+# =============================
+if raw_frames:
+    raw_df = pd.concat(raw_frames, ignore_index=True)
 
     raw_df["snapshot_time"] = datetime.utcnow()
     raw_df["data_source"] = "Google Trends"
-    raw_df["geo"] = GEO
+    raw_df["region"] = "Vietnam"
 
-    raw_df.to_csv("data/raw_sentiment.csv", index=False)
-
+    raw_df.to_csv("data/raw_sentiment.csv", index=False, encoding="utf-8-sig")
     print("✅ RAW sentiment data saved")
 
 else:
