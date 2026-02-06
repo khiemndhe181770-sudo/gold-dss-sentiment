@@ -1,0 +1,27 @@
+name: Update Gold Sentiment Raw Data
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # chạy mỗi ngày lúc 01:00 UTC (~08:00 VN)
+  workflow_dispatch:      # cho phép chạy tay
+
+jobs:
+  run-trends:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pytrends pandas gspread oauth2client
+
+      - name: Run sentiment raw script
+        run: |
+          python scripts/fetch_trends_raw.py
