@@ -1,0 +1,4 @@
+pytrends
+pandas
+gspread
+oauth2client
