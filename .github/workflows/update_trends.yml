@@ -1,5 +1,4 @@
-# .github/workflows/update_trends.yml
-name: Update Gold Sentiment Raw Data
+name: Update Gold Sentiment DSS
 
 on:
   schedule:
@@ -7,12 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-trends:
+  run-dss:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Create GCP credentials
         run: |
@@ -27,10 +25,18 @@ jobs:
         run: |
           pip install pytrends pandas gspread google-auth
 
-      - name: Fetch raw sentiment
+      - name: Fetch RAW sentiment
         run: |
           python scripts/fetch_trends_raw.py
 
-      - name: Push RAW to Google Sheets
+      - name: Push RAW to Sheet
         run: |
           python scripts/push_raw_to_sheet.py
+
+      - name: Build CLEAN sentiment
+        run: |
+          python scripts/build_clean_sentiment.py
+
+      - name: Push CLEAN to Sheet
+        run: |
+          python scripts/push_clean_to_sheet.py
