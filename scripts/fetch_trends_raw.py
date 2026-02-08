@@ -8,7 +8,35 @@ from datetime import datetime
 # CONFIG
 # -----------------------------
 KEYWORDS = [
-    "gold price"
+    # ======================
+    # GLOBAL / BASELINE
+    # ======================
+    "gold price",
+    "giá vàng",
+    "giá vàng thế giới",
+    "XAUUSD",
+
+    # ======================
+    # INVESTMENT SENTIMENT
+    # ======================
+    "đầu tư vàng",
+    "có nên mua vàng",
+    "xu hướng giá vàng",
+
+    # ======================
+    # GOLD TYPE (SJC / 9999)
+    # ======================
+    "vàng SJC",
+    "SJC 9999",
+    "vàng 9999",
+    "vàng 24k",
+
+    # ======================
+    # BRAND AWARENESS (RAW)
+    # ======================
+    "vàng DOJI",
+    "vàng PNJ",
+    "vàng PNJ 24K"
 ]
 
 GEO = "VN"
