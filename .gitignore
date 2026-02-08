@@ -48,6 +48,7 @@ data/clear_*.csv
 # =========================
 .env
 .env.*
+gcp_service_account.json
 
 # =========================
 # PYTHON BUILD

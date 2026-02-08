@@ -1,3 +1,4 @@
+# scripts/fetch_trends_raw.py
 from pytrends.request import TrendReq
 import pandas as pd
 import time

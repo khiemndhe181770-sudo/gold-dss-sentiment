@@ -1,0 +1,36 @@
+# .github/workflows/update_trends.yml
+name: Update Gold Sentiment Raw Data
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-trends:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create GCP credentials
+        run: |
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT }}' > gcp_service_account.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pytrends pandas gspread google-auth
+
+      - name: Fetch raw sentiment
+        run: |
+          python scripts/fetch_trends_raw.py
+
+      - name: Push RAW to Google Sheets
+        run: |
+          python scripts/push_raw_to_sheet.py
