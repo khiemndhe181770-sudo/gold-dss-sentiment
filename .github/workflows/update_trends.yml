@@ -2,7 +2,7 @@ name: Update Gold Sentiment DSS
 
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '30 2 * * *'
   workflow_dispatch:
 
 jobs:
