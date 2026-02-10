@@ -1,7 +1,8 @@
 import pandas as pd
 import hashlib
 from datetime import datetime, time
-import pytz
+from zoneinfo import ZoneInfo
+
 # =================================================
 # 1. CONFIG – GOLD CODES & MAPPING
 # =================================================
@@ -66,14 +67,13 @@ df["snapshot_time"] = pd.to_datetime(
     errors="coerce"
 ).dt.tz_convert("Asia/Ho_Chi_Minh")
 
-vn_tz = pytz.timezone("Asia/Ho_Chi_Minh")
+# vn_tz = pytz.timezone("Asia/Ho_Chi_Minh")
+vn_tz = ZoneInfo("Asia/Ho_Chi_Minh")
 
 df["snapshot_date"] = df["snapshot_time"].dt.date
 
 df["snapshot_time"] = df["snapshot_date"].apply(
-    lambda d: vn_tz.localize(
-        datetime.combine(d, time(9, 30))
-    )
+    lambda d: datetime.combine(d, time(9, 30), tzinfo=vn_tz)
 )
 
 # MAP gold_group

@@ -2,7 +2,7 @@
 from pytrends.request import TrendReq
 import pandas as pd
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 # -----------------------------
 # CONFIG
@@ -91,7 +91,7 @@ for kw in KEYWORDS:
 if raw_frames:
     raw_df = pd.concat(raw_frames, ignore_index=True)
 
-    raw_df["snapshot_time"] = datetime.utcnow()
+    raw_df["snapshot_time"] = datetime.now(timezone.utc)
     raw_df["data_source"] = "Google Trends"
     raw_df["region"] = "Vietnam"
 
