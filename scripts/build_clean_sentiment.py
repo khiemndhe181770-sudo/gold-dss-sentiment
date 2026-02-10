@@ -68,7 +68,7 @@ df["snapshot_time"] = pd.to_datetime(
 df["gold_group"] = df["keyword"].apply(map_gold_group)
 
 # =================================================
-# 4. AGGREGATE SENTIMENT PER SNAPSHOT & GROUP
+# 4. AGGREGATE → sentiment_raw, news_volume
 # =================================================
 
 grouped = (
@@ -81,15 +81,21 @@ grouped = (
 )
 
 # =================================================
-# 5. NORMALIZE SENTIMENT → [-1, 1]
+# 5. DSS-CORRECT SENTIMENT SCORE (PERCENTILE)
 # =================================================
+# ✔ Chuẩn hóa theo lịch sử
+# ✔ Không giả định phân phối
+# ✔ Phù hợp risk / DSS
 
-mean = grouped["sentiment_raw"].mean()
-std = grouped["sentiment_raw"].std()
+grouped["sentiment_percentile"] = (
+    grouped
+    .groupby("gold_group")["sentiment_raw"]
+    .rank(pct=True)
+)
 
 grouped["sentiment_score"] = (
-    (grouped["sentiment_raw"] - mean) / std
-).clip(-1, 1)
+    grouped["sentiment_percentile"] - 0.5
+) * 2
 
 # =================================================
 # 6. EXPAND → FULL 12 GOLD CODES / SNAPSHOT
@@ -98,12 +104,11 @@ grouped["sentiment_score"] = (
 expanded_rows = []
 
 for snapshot_time in grouped["snapshot_time"].unique():
-    snapshot_df = grouped[grouped["snapshot_time"] == snapshot_time]
+    snap = grouped[grouped["snapshot_time"] == snapshot_time]
 
     for gold_code in SUPPORTED_GOLD_CODES:
         group = GOLD_CODE_TO_GROUP.get(gold_code, "GENERAL")
-
-        row = snapshot_df[snapshot_df["gold_group"] == group]
+        row = snap[snap["gold_group"] == group]
 
         if not row.empty:
             base = row.iloc[0]
@@ -157,4 +162,4 @@ final_clean.to_csv(
     encoding="utf-8-sig"
 )
 
-print("✅ CLEAN sentiment built – FULL 12 GOLD CODES per snapshot")
+print("✅ CLEAN sentiment built – DSS percentile normalized")
