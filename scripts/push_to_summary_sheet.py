@@ -5,7 +5,10 @@ from google.oauth2.service_account import Credentials
 # =============================
 # CONFIG
 # =============================
-SPREADSHEET_ID = "1WW22O8SrCQPbjdAWJ2yUd5zLJOqL4-WmZHpRC0PLsQU"
+CLEAN_SPREADSHEET_ID = "1DGvajxGMPyiAViJpb0MlSu08DUEgK3fFV2FGoKPwa58"
+CLEAN_SHEET_NAME = "clean"
+
+SUMMARY_SPREADSHEET_ID = "1WW22O8SrCQPbjdAWJ2yUd5zLJOqL4-WmZHpRC0PLsQU"
 SUMMARY_SHEET_NAME = "Data compilation THỬ NGHIỆM"
 
 CLEAN_CSV = "data/sentiment_clean.csv"
@@ -44,6 +47,20 @@ sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SUMMARY_SHEET_NAME)
 # =============================
 sentiment_df = pd.read_csv(CLEAN_CSV)
 
+for col in ["sentiment_raw", "sentiment_score"]:
+    sentiment_df[col] = (
+        sentiment_df[col]
+        .astype(str)
+        .str.replace(",", ".", regex=False)
+    )
+    sentiment_df[col] = pd.to_numeric(sentiment_df[col], errors="coerce")
+
+# news_volume giữ nguyên int
+sentiment_df["news_volume"] = pd.to_numeric(
+    sentiment_df["news_volume"],
+    errors="coerce"
+)
+
 sentiment_df["snapshot_time"] = pd.to_datetime(
     sentiment_df["snapshot_time"],
     errors="coerce"
@@ -63,7 +80,6 @@ if summary_df.empty:
 
 summary_df["snapshot_time"] = pd.to_datetime(
     summary_df["snapshot_time"],
-    dayfirst=True,
     errors="coerce"
 )
 
@@ -100,13 +116,25 @@ merged = pd.merge(
         ]
     ],
     on=["snapshot_date", "gold_code"],
-    how="left"
+    how="left",
+    suffixes=("", "_new")
 )
 
+
 # Nếu không có sentiment → trung tính
-merged["news_volume"] = merged["news_volume"].fillna(0)
-merged["sentiment_raw"] = merged["sentiment_raw"].fillna(0)
-merged["sentiment_score"] = merged["sentiment_score"].fillna(0)
+for col in ["news_volume", "sentiment_raw", "sentiment_score"]:
+    new_col = f"{col}_new"
+    
+    if new_col in merged.columns:
+        merged[col] = merged[new_col].fillna(merged.get(col, 0))
+        merged.drop(columns=[new_col], inplace=True)
+
+    if col in merged.columns:
+        merged[col] = merged[col].fillna(0)
+
+print("Total rows after merge:", len(merged))
+print("Rows with sentiment match:",
+      merged["news_volume"].notna().sum())
 
 # =============================
 # CLEAN UP TEMP COLUMNS
